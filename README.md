@@ -186,8 +186,25 @@ fan() {
 
     if [ $validArg == 1 ]; then
         echo "Setting fan level = $fanLevel"
-        ## ThinkPad specific path
-        echo "level $fanLevel" | sudo tee /proc/acpi/ibm/fan
+        if [[ "$fanLevel" == "auto" ]]; then
+            ## Switch to auto: ensure thinkfan is running
+            if systemctl is-active --quiet thinkfan; then
+                echo "thinkfan already running — no change needed."
+            else
+                echo "Starting thinkfan service..."
+                sudo systemctl start thinkfan
+            fi
+        else
+            ## Switch to manual: ensure thinkfan is stopped before writing level
+            if systemctl is-active --quiet thinkfan; then
+                echo "Stopping thinkfan service..."
+                sudo systemctl stop thinkfan
+            else
+                echo "thinkfan already stopped — no change needed."
+            fi
+            ## ThinkPad specific path
+            echo "level $fanLevel" | sudo tee /proc/acpi/ibm/fan
+        fi
     elif [ $validArg == 2 ]; then
         echo "Temp: /proc/acpi/ibm/thermal"
         cat /proc/acpi/ibm/thermal
@@ -205,29 +222,26 @@ fan() {
 | Command | Effect |
 |---|---|
 | `fan check` | Print current temps (`/proc/acpi/ibm/thermal`) and fan state |
-| `fan auto` | Hand control back to BIOS EC firmware |
-| `fan 0` – `fan 7` | Set a specific speed level (0 = off, 7 = near-max) |
-| `fan disengaged` | Maximum RPM — ignores EC thermal limits entirely |
-| `fan full` / `fan max` | Alias for `full-speed` (same as disengaged) |
+| `fan auto` | Start thinkfan if not running → software exponential curve takes control |
+| `fan 0` – `fan 7` | Stop thinkfan if running, then set specific speed level (0 = off, 7 = near-max) |
+| `fan disengaged` | Stop thinkfan if running, then set maximum RPM — ignores EC thermal limits |
+| `fan full` / `fan max` | Stop thinkfan if running, alias for `full-speed` |
+
+The function checks the thinkfan service state before acting — no redundant start/stop:
+
+| Transition | thinkfan already in target state | thinkfan needs to change |
+|---|---|---|
+| `fan auto` | "already running — no change" | `systemctl start thinkfan` |
+| `fan <manual>` | "already stopped — no change" | `systemctl stop thinkfan` → write level |
 
 ### Design notes
 
 - Input validation uses a `case` statement covering all valid `thinkpad_acpi` level strings plus `full`/`max` aliases, cleanly rejecting anything else with a helpful error.
 - `validArg` flag separates the three code paths (set / check / invalid) without duplication.
+- `systemctl is-active --quiet` checks service state silently (exit code only) before committing to a start/stop — avoids redundant sudo calls when switching between levels within the same mode.
 - `fan check` reads both `/proc/acpi/ibm/thermal` and `/proc/acpi/ibm/fan` in one call — useful for a quick sanity check before/after switching modes.
 - Uses `sudo tee` instead of `sudo sh -c "echo ... > /proc/..."` — safer and avoids shell quoting issues with redirects and sudo.
 - Requires `fan_control=1` (Step 1 in this README).
-
-### Using alongside thinkfan
-
-thinkfan owns the fan while running. Stop it first:
-
-```bash
-sudo systemctl stop thinkfan
-fan disengaged    # or any level
-# ... do your thing ...
-sudo systemctl start thinkfan
-```
 
 ---
 
