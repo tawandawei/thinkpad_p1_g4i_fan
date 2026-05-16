@@ -60,18 +60,19 @@ sensors:
 fans:
   - tpacpi: /proc/acpi/ibm/fan
 
-# Exponential curve — band widths compress as temp rises: 6→5→4→4→4→3→3°C
+# Exponential curve — band widths compress as temp rises: 8→7→6→5→4→3→2°C
+# Fan off at 35°C; disengaged above 70°C
 # Wide quiet zone at idle; fan steps up increasingly fast when hot
 levels:
-  - [0,                    0,  37]   # 6°C step — fan off at idle
-  - [1,                   32,  43]   # 6°C step
-  - [2,                   38,  48]   # 5°C step
-  - [3,                   43,  52]   # 4°C step
-  - [4,                   47,  56]   # 4°C step
-  - [5,                   51,  60]   # 4°C step
-  - [6,                   55,  63]   # 3°C step
-  - [7,                   58,  66]   # 3°C step
-  - ["level disengaged",  60, 255]   # triggers above 66°C
+  - [0,                    0,  35]   # 8°C step — fan off at idle
+  - [1,                   30,  43]   # 7°C step
+  - [2,                   38,  50]   # 6°C step
+  - [3,                   45,  56]   # 5°C step
+  - [4,                   51,  61]   # 4°C step
+  - [5,                   56,  65]   # 3°C step
+  - [6,                   60,  68]   # 2°C step
+  - [7,                   63,  70]   # 2°C step
+  - ["level disengaged",  65, 255]   # triggers above 70°C
 EOF
 ```
 

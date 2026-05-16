@@ -177,36 +177,36 @@ Despite Tiger Lake-H being supported by thermald in theory, the presence of `dyt
 Applied config at `/etc/thinkfan.conf` (backup: `thinkfan.conf` in project directory):
 
 ```yaml
-# Exponential curve — band widths compress as temp rises: 6→5→4→4→4→3→3°C
-# More aggressive than previous flat curve at every level
+# Exponential curve — band widths compress as temp rises: 8→7→6→5→4→3→2°C
+# Fan off at 35°C; disengaged above 70°C
 # Wide quiet zone at idle; fan steps up increasingly fast when hot
 levels:
-  - [0,                    0,  37]   # 6°C step — fan off at idle
-  - [1,                   32,  43]   # 6°C step
-  - [2,                   38,  48]   # 5°C step
-  - [3,                   43,  52]   # 4°C step
-  - [4,                   47,  56]   # 4°C step
-  - [5,                   51,  60]   # 4°C step
-  - [6,                   55,  63]   # 3°C step
-  - [7,                   58,  66]   # 3°C step
-  - ["level disengaged",  60, 255]   # triggers above 66°C
+  - [0,                    0,  35]   # 8°C step — fan off at idle
+  - [1,                   30,  43]   # 7°C step
+  - [2,                   38,  50]   # 6°C step
+  - [3,                   45,  56]   # 5°C step
+  - [4,                   51,  61]   # 4°C step
+  - [5,                   56,  65]   # 3°C step
+  - [6,                   60,  68]   # 2°C step
+  - [7,                   63,  70]   # 2°C step
+  - ["level disengaged",  65, 255]   # triggers above 70°C
 ```
 
 **Threshold history:**
 
-| Level | Initial upper | Aggressive flat | Exponential | vs flat |
-|---|---|---|---|---|
-| 0 (off)    | 47°C | 40°C | 37°C | −3°C |
-| 1          | 52°C | 45°C | 43°C | −2°C |
-| 2          | 57°C | 50°C | 48°C | −2°C |
-| 3          | 63°C | 56°C | 52°C | −4°C |
-| 4          | 69°C | 62°C | 56°C | −6°C |
-| 5          | 75°C | 68°C | 60°C | −8°C |
-| 6          | 81°C | 74°C | 63°C | −11°C |
-| 7          | 87°C | 80°C | 66°C | −14°C |
-| disengaged | 83°C | 76°C | 66°C | −10°C |
+| Level | Initial upper | Aggressive flat | Exp v1 | Exp v2 (current) | v2 vs v1 |
+|---|---|---|---|---|---|
+| 0 (off)    | 47°C | 40°C | 37°C | 35°C | −2°C |
+| 1          | 52°C | 45°C | 43°C | 43°C | 0°C |
+| 2          | 57°C | 50°C | 48°C | 50°C | +2°C |
+| 3          | 63°C | 56°C | 52°C | 56°C | +4°C |
+| 4          | 69°C | 62°C | 56°C | 61°C | +5°C |
+| 5          | 75°C | 68°C | 60°C | 65°C | +5°C |
+| 6          | 81°C | 74°C | 63°C | 68°C | +5°C |
+| 7          | 87°C | 80°C | 66°C | 70°C | +4°C |
+| disengaged | 83°C | 76°C | 66°C | 70°C | +4°C |
 
-Band widths between consecutive upper limits (exponential column): **6→6→5→4→4→4→3→3°C** — compresses as temperature rises. The fan ramps slowly while cool, then accelerates through levels rapidly when hot.
+Band widths between consecutive upper limits (Exp v2): **8→7→6→5→4→3→2°C** — compresses as temperature rises. The fan ramps slowly while cool, then accelerates through levels rapidly when hot.
 
 Enabled and started:
 
